@@ -15,11 +15,6 @@ public class Interpreter {
     private Set<String> commands;
 
     /**
-     * stores arithmetic operations supported by the interpreter
-     */
-    private Set<String> arithmeticOperators;
-
-    /**
      * stores variable Types supported by the interpreter and the function, with which we convert the input string to the variable
      */
     private HashMap<String,Function<String,?>> variableTypes;
@@ -63,13 +58,6 @@ public class Interpreter {
         variableTypes.put("double",Double::parseDouble);
         variableTypes.put("char",x->x.charAt(1));
         variableTypes.put("boolean",x->x.equals("true"));
-
-        arithmeticOperators = new HashSet<>();
-        arithmeticOperators.add("+");
-        arithmeticOperators.add("-");
-        arithmeticOperators.add("*");
-        arithmeticOperators.add("%");
-        arithmeticOperators.add("/");
 
         lines= input.split(" (\n)|(\\{)");
         pc = 0;
