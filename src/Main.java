@@ -1,12 +1,14 @@
+import model.ArithmeticOperation;
+import service.ArithmeticOperationCalculator;
 import service.Interpreter;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) {
-        String input= "int a = 0; sout(5); if (a=8){sout(a);a=7;}sout(a);";
-        String[] lines= input.split("(;)|(\\{)");
-        System.out.println(Arrays.toString(lines));
+        String op="5+10*2/4-9/3+7%4+21";
+        System.out.println(ArithmeticOperationCalculator.calculate(op,new HashMap<>()));
     }
 }

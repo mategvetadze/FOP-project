@@ -63,7 +63,6 @@ public class Interpreter {
         variableTypes.put("double",Double::parseDouble);
         variableTypes.put("char",x->x.charAt(1));
         variableTypes.put("boolean",x->x.equals("true"));
-        variableTypes.put("String",x->x.substring(1, x.length()-1));
 
         arithmeticOperators = new HashSet<>();
         arithmeticOperators.add("+");
