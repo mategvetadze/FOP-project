@@ -1,18 +1,30 @@
 package util;
 
-import util.Tokenizer;
+
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.function.BiFunction;
 
 // Parser class to evaluate the boolean expression
 public class Parser {
     private final Tokenizer tokenizer;
+    private static final HashMap<String, BiFunction<Double,Double, Boolean>> operatorsMap;
+    static {
+        operatorsMap = new HashMap<>();
+        operatorsMap.put(">", (x,y)->x>y);
+        operatorsMap.put("<", (x,y)->x<y);
+        operatorsMap.put(">=", (x,y)->x>=y);
+        operatorsMap.put("<=", (x,y)->x<=y);
+        operatorsMap.put("==", Objects::equals);
+        operatorsMap.put("!=", (x,y)-> !Objects.equals(x, y));
+    }
 
     public Parser(Tokenizer tokenizer) {
         this.tokenizer = tokenizer;
     }
 
     public boolean parseExpression() {
-        boolean value = parseOr();
-        return value;
+        return parseOr();
     }
 
     private boolean parseOr() {
@@ -37,30 +49,9 @@ public class Parser {
         double left = parseFactor();
         if (tokenizer.hasNext()) {
             String operator = tokenizer.peek();
-            switch (operator) {
-                case ">":
-                case "<":
-                case ">=":
-                case "<=":
-                case "==":
-                case "!=":
-                    tokenizer.next(); // Consume operator
-                    double right = parseFactor();
-                    switch (operator) {
-                        case ">":
-                            return left > right;
-                        case "<":
-                            return left < right;
-                        case ">=":
-                            return left >= right;
-                        case "<=":
-                            return left <= right;
-                        case "==":
-                            return left == right;
-                        case "!=":
-                            return left != right;
-                    }
-            }
+                tokenizer.next(); // Consume operator
+                double right = parseFactor();
+                return operatorsMap.get(operator).apply(left, right);
         }
         return left != 0; // Convert numeric result to boolean
     }
