@@ -41,6 +41,7 @@ public class Interpreter {
 
 
 
+
     /**
      * allows to create {@code Interpreter} class object
      *
@@ -59,8 +60,16 @@ public class Interpreter {
         variableTypes.put("char",x->x.charAt(1));
         variableTypes.put("boolean",x->x.equals("true"));
 
-        lines= input.split(" (\n)|(\\{)");
+        this.lines= input.split(" (\n)|(\\{)");
         pc = 0;
+    }
+
+    public void interpret() {
+        while (pc < lines.length) {
+            while (lines[pc].startsWith("//")) pc++;
+            interpretLine(lines[pc]);
+            pc++;
+        }
     }
 
     /**
@@ -70,15 +79,31 @@ public class Interpreter {
      * @throws Exception TODO
      */
     private void interpretLine(String line) {
+
         String command = line.split(" ")[0];
-        if (commands.contains(command)) {
-            executeCommand(line);
+
+        if (line.contains("}")){
+            pc=returnAddresses.pop();
+        } else if (command.equals("for")) {
+
+        } else if (command.equals("if")) {
+
         } else if (command.equals("var")) {
-            initVariables(line, variableTypes.get(command));
+            initVariables(line);
         } else{
             executeNonCommand(line);
         }
     }
+
+    private void falseStatement(){
+        while (!lines[pc].contains("}")) pc++;
+        pc++;
+    }
+
+    private void executeFor(String lines){
+
+    }
+
 
 
     /**
@@ -95,10 +120,9 @@ public class Interpreter {
      * If an inputted line is an initialization of a variable initialize it and store it in {@code variables}
      *
      * @param line line which the function will interpret
-     * @param conversion function of how a sting should be cast to the needed variable
      * @throws Exception TODO
      */
-    private void initVariables(String line,Function<String,?> conversion) {
+    private void initVariables(String line) {
         String[] words = line.replace("="," ").split(" ");
         String name=words[1];
         variables.put(name,Optional.empty());
@@ -107,15 +131,5 @@ public class Interpreter {
             String value = line.substring(line.indexOf("=")+1);
             variables.put(name,Optional.of(variableTypes.get(variable).apply(value)));
         }
-    }
-
-    /**
-     * Executes a line which contains Conditional statement or an Iterative control flow
-     *
-     * @param line line which the function will interpret
-     * @throws Exception TODO
-     */
-    private void executeCommand(String line) {
-
     }
 }
