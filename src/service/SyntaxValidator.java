@@ -1,10 +1,13 @@
 package service;
+
+import service.exeption.SyntaxException;
+
 import java.util.Stack;
 import java.util.ArrayList;
 
 public class SyntaxValidator {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SyntaxException {
         String code = """
                 package service               
 
@@ -12,7 +15,7 @@ public class SyntaxValidator {
 
                 func main() 
                 { 
-                    Var a int
+                    var a int
                     fmt.Scan(&a)
                     var reversed int
                     var copyOfA int = a
@@ -24,15 +27,19 @@ public class SyntaxValidator {
                     if (reversed == 0) {
                         reversed = 1
                     }
-                    fmt.Println(a = reversed)
+                    fmt.Println(a == reversed)
                 }
                 """; // Put your Go code here
-        checkSyntax(code);
+        try {
+            checkSyntax(code);
+        } catch (SyntaxException e) {
+            throw new SyntaxException("Semicolons are not allowed in Go");
+        }
     }
 
-    public static void checkSyntax(String code) {
+    public static void checkSyntax(String code) throws SyntaxException {
         Stack<Character> stack = new Stack<>();
-        ArrayList<String> errors = new ArrayList<>();  // List to collect errors
+        ArrayList<String> errors = new ArrayList<>();
         boolean inCondition = false;
         boolean inAssignment = false;
         boolean inVarDeclaration = false;
@@ -48,7 +55,7 @@ public class SyntaxValidator {
 
         boolean isInForLoop = false;
         boolean isInIfStatement = false;
-        boolean isInFunction = false;  // To track function declarations
+        boolean isInFunction = false;
 
         for (String line : lines) {
             String trimmedLine = line.trim();
@@ -60,12 +67,12 @@ public class SyntaxValidator {
 
             // Check for non-English alphabet characters
             if (!trimmedLine.matches("[\\x00-\\x7F]*")) {
-                errors.add("Error: Non-English characters detected in the code.");
+                throw new SyntaxException("Error: Non-English characters detected in the code.");
             }
 
             // Check for semicolons (they are not allowed in Go)
             if (trimmedLine.contains(";")) {
-                errors.add("Error: Semicolons are not allowed in Go.");
+                throw new SyntaxException("Error: Semicolons are not allowed in Go.");
             }
 
             // Check for package declaration
@@ -73,7 +80,7 @@ public class SyntaxValidator {
                 hasPackage = true;
                 // Validate package name
                 if (!trimmedLine.contains(packageName)) {
-                    errors.add("Error: Expected package name 'service', found: " + trimmedLine);
+                    throw new SyntaxException("Error: Expected package name 'service', found: " + trimmedLine);
                 }
             }
 
@@ -81,7 +88,7 @@ public class SyntaxValidator {
             else if (trimmedLine.toLowerCase().startsWith("import")) {
                 hasImport = true;
                 if (!trimmedLine.toLowerCase().contains("fmt")) {
-                    errors.add("Error: Missing import of 'fmt'.");
+                    throw new SyntaxException("Error: Missing import of 'fmt'.");
                 }
             }
 
@@ -97,11 +104,10 @@ public class SyntaxValidator {
             // Handle "if" statement
             else if (trimmedLine.startsWith("if")) {
                 if (inVarDeclaration || inAssignment) {
-                    errors.add("Error: Invalid syntax in 'if' condition (variable declaration or assignment within).");
+                    throw new SyntaxException("Error: Invalid syntax in 'if' condition (variable declaration or assignment within).");
                 }
                 inCondition = true;
                 checkForParentheses(trimmedLine);
-                // Check for curly brace, possibly on the same line
                 if (trimmedLine.contains("{")) {
                     stack.push('{');
                 }
@@ -111,11 +117,10 @@ public class SyntaxValidator {
             // Handle "for" loop
             else if (trimmedLine.startsWith("for")) {
                 if (inVarDeclaration || inAssignment) {
-                    errors.add("Error: Invalid syntax in 'for' loop (variable declaration or assignment within).");
+                    throw new SyntaxException("Error: Invalid syntax in 'for' loop (variable declaration or assignment within).");
                 }
                 checkForParentheses(trimmedLine);
-                isInForLoop = true; // The for loop is being processed
-                // Check for curly brace, possibly on the same line
+                isInForLoop = true;
                 if (trimmedLine.contains("{")) {
                     stack.push('{');
                 }
@@ -126,18 +131,16 @@ public class SyntaxValidator {
                 if (trimmedLine.equals("{")) {
                     stack.push('{');
                 } else if (trimmedLine.equals("}")) {
-                    // Ensure the closing curly brace matches
                     if (stack.isEmpty()) {
-                        errors.add("Error: Mismatched closing curly brace.");
+                        throw new SyntaxException("Error: Mismatched closing curly brace.");
                     } else {
                         stack.pop();
                     }
                 }
             }
 
-            // Skip assignment check for variable declarations (e.g., var copyOfA int = a)
+            // Handle assignment checks for variable declarations
             else if (trimmedLine.contains("=") && !trimmedLine.startsWith("var")) {
-                // Check for assignment syntax
                 checkAssignmentSyntax(trimmedLine, errors);
             }
 
@@ -153,9 +156,9 @@ public class SyntaxValidator {
                 checkFunctionCall(trimmedLine, errors);
             }
 
-            // Handle unknown keyword or unknown syntax
+            // Handle unknown keyword or incorrect syntax
             else {
-                errors.add("Error: Unknown syntax or incorrect keyword: " + trimmedLine);
+                throw new SyntaxException("Error: Unknown syntax or incorrect keyword: " + trimmedLine);
             }
 
             // Reset state after processing a line
@@ -166,28 +169,28 @@ public class SyntaxValidator {
 
         // Check if there are unmatched curly braces
         if (!stack.isEmpty()) {
-            errors.add("Error: Unmatched opening curly brace.");
+            throw new SyntaxException("Error: Unmatched opening curly brace.");
         }
 
         // Ensure that package and import are present
         if (!hasPackage) {
-            errors.add("Error: Missing 'package' declaration.");
+            throw new SyntaxException("Error: Missing 'package' declaration.");
         }
         if (!hasImport) {
-            errors.add("Error: Missing 'import' declaration.");
+            throw new SyntaxException("Error: Missing 'import' declaration.");
         }
 
         // Output all errors
         if (errors.isEmpty()) {
-            System.out.println("No syntax errors detected.");
+            throw new SyntaxException("No syntax errors detected.");
         } else {
             for (String error : errors) {
-                System.out.println(error);
+                throw new SyntaxException(error);
             }
         }
     }
 
-    private static void checkForParentheses(String line) {
+    private static void checkForParentheses(String line) throws SyntaxException {
         int openParentheses = 0;
         int closeParentheses = 0;
 
@@ -197,87 +200,71 @@ public class SyntaxValidator {
         }
 
         if (openParentheses != closeParentheses) {
-            System.out.println("Error: Mismatched parentheses in condition.");
+            throw new SyntaxException("Error: Mismatched parentheses in condition.");
         }
     }
 
-    private static void checkAssignmentSyntax(String line, ArrayList<String> errors) {
+    private static void checkAssignmentSyntax(String line, ArrayList<String> errors) throws SyntaxException {
         // Skip assignment checks for variable declarations like 'var x int = 5'
         if (line.startsWith("var") && line.contains("=")) {
-            // This is a valid declaration with assignment, so skip validation here
-            return;
+            return; // Skip this check
         }
 
-        // Check for invalid assignment in fmt.Println or other function calls
-        if (line.contains("=") && line.contains("fmt.Println")) {
+        // Check for assignment inside fmt.Println()
+        if (line.contains("fmt.Println") && line.contains("=")) {
+            if (line.contains("==")) {
+                return; // This is a comparison, not an assignment
+            }
             errors.add("Error: Invalid assignment inside fmt.Println() function call.");
             return;
         }
 
-        // Handle regular assignment (e.g., a = 5)
+        // Regular assignment handling (e.g., a = 5)
         String[] parts = line.split("=");
         if (parts.length != 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
             errors.add("Error: Invalid assignment syntax.");
         }
     }
 
-    private static void checkVarDeclaration(String line, ArrayList<String> errors) {
-        // Trim the line and convert it to lowercase for consistent comparison
+    private static void checkVarDeclaration(String line, ArrayList<String> errors) throws SyntaxException {
         String trimmedLine = line.trim();
 
         // Check for incorrect capitalization of 'var'
-        if (trimmedLine.startsWith("Var") || trimmedLine.startsWith("VAR")) {
-            errors.add("Error: 'Var' is not valid. Use 'var' for variable declaration.");
-            return;
+        if (trimmedLine.matches(".*\\b(VAr|VAR)\\b.*")) {
+            throw new SyntaxException("Error: 'Var' is not valid. Use 'var' for variable declaration.");
         }
 
-        // Check if the line starts with the 'var' keyword
         if (!trimmedLine.startsWith("var")) {
-            errors.add("Error: Invalid variable declaration.");
-            return;
+            throw new SyntaxException("Error: Invalid variable declaration.");
         }
 
-        // Split the declaration into parts based on spaces
         String[] parts = trimmedLine.split("\\s+");
 
-        // Ensure the declaration has at least 3 parts: 'var', variable name, and type
         if (parts.length < 3) {
             errors.add("Error: Invalid variable declaration (missing type or variable name).");
             return;
         }
 
-        // Validate that the second part is a valid variable name (only letters or numbers, no special characters)
         if (!parts[1].matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
             errors.add("Error: Invalid variable name: " + parts[1]);
             return;
         }
 
-        // Ensure the third part is a valid type (in this case, only simple types are expected, like int, string, etc.)
         if (!parts[2].matches("int|float64|string|bool")) {
             errors.add("Error: Invalid variable type: " + parts[2]);
             return;
         }
 
-        // Handle cases where there's an assignment with a value
         if (parts.length > 3) {
-            // If there's an equals sign, check for proper initialization
             String assignmentPart = trimmedLine.substring(trimmedLine.indexOf('=')).trim();
 
-            // Check if the assignment part is empty (e.g., "var x int =")
             if (assignmentPart.isEmpty()) {
                 errors.add("Error: Invalid assignment in variable declaration (missing value).");
-            } else {
-                // Check if there's a valid expression after the equals sign
-                // This can be enhanced with more validation if necessary
-                if (assignmentPart.split("\\s+").length < 1) {
-                    errors.add("Error: Invalid syntax for value in variable declaration.");
-                }
             }
         }
     }
 
-
-    private static void checkFunctionCall(String line, ArrayList<String> errors) {
+    private static void checkFunctionCall(String line, ArrayList<String> errors) throws SyntaxException {
         if (!line.contains("(") || !line.contains(")")) {
             errors.add("Error: Invalid function call syntax.");
         }
