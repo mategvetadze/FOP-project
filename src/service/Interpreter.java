@@ -48,6 +48,12 @@ public class Interpreter {
      *
      * @param input input is the code that will be interpreted line by line
      */
+    public void addVariable(String name,int value){
+        variables.put(name,new Value(Optional.of(value),variableTypes.get(name)));
+    }
+    public Optional<?> getVariable(String name){
+        return variables.get(name).getValue();
+    }
     public Interpreter(String input) {
         variables = new HashMap<>();
         commands = new HashSet<>();
