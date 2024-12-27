@@ -1,9 +1,11 @@
 package service;
 
+import service.exeption.SyntaxException;
+
 import java.util.Scanner;
 
 public class InputOutput {
-    private static Interpreter interpreter;
+    private Interpreter interpreter;
     private static final Scanner scanner = new Scanner(System.in);
 
     public InputOutput(Interpreter interpreter) {
@@ -11,14 +13,14 @@ public class InputOutput {
 
     }
 
-    public static void inputHandler(String Line) {
+    public void inputHandler(String Line) {
         Line.replaceAll(" ", "");
         int n = Line.length();
         for (int k = 0; k < n; k++) {
             if (Line.charAt(k) == '&') {
                 StringBuilder s = new StringBuilder();
                 k++;
-                while (Line.charAt(k) != ',' || Line.charAt(k) != ')') {
+                while (k<n&&(Line.charAt(k) != ',' && Line.charAt(k) != ')')) {
                     s.append(Line.charAt(k));
                     k++;
                 }
@@ -27,7 +29,7 @@ public class InputOutput {
         }
     }
 
-    public static void outputHandler(String Line) throws SyntaxException {
+    public void outputHandler(String Line) throws SyntaxException {
         Line.replaceAll(" ", "");
         int n = Line.length();
         if (Line.contains("Println")){

@@ -1,6 +1,7 @@
 package service;
 
 import model.Value;
+import service.exeption.SyntaxException;
 
 import java.util.*;
 import java.util.function.Function;
@@ -26,6 +27,7 @@ public class Interpreter {
      * stores variable names and its values during the running of the code
      */
     private HashMap<String, Value> variables;
+    private HashSet<String> imports;
     /**
      * stores the inputted code line by line
      */
@@ -42,32 +44,38 @@ public class Interpreter {
     private Stack<Integer> returnAddresses;
     private Stack<String> returnInstruction;
     private Stack<Boolean> ifStack;
+    private InputOutput inputOutput;
 
+    public Optional<?> getVariable(String name){
+        return variables.get(name).getValue();
+    }
 
     /**
      * allows to create {@code Interpreter} class object
      *
      * @param input input is the code that will be interpreted line by line
      */
-    public void addVariable(String name,int value){
-        variables.put(name,new Value(Optional.of(value),variableTypes.get(name)));
-    }
-    public Optional<?> getVariable(String name){
-        return variables.get(name).getValue();
-    }
     public Interpreter(String input) {
         variables = new HashMap<>();
         returnAddresses = new Stack<>();
         ifStack = new Stack<>();
         returnInstruction = new Stack<>();
+        imports = new HashSet<>();
+        inputOutput =new InputOutput(this);
         this.lines = input.split("(\n)|(\\{)");
         pc = 0;
 
         initCommands();
         initVariableTypes();
     }
+    public void addVariable(String name,int value){
+        if (!variables.containsKey(name))throw new RuntimeException("Variable " + name + " not found");
+        Value value1=variables.get(name);
+        value1.setValue(value);
+        variables.put(name,value1);
+    }
 
-    public void interpret() throws Exception {
+    public void interpret() throws Exception, SyntaxException {
         while (pc < lines.length) {
             while (lines[pc].startsWith("//")) pc++;
             interpretLine(lines[pc]);
@@ -133,10 +141,8 @@ public class Interpreter {
      * @param line line which the function will interpret
      * @throws Exception TODO
      */
-    private void interpretLine(String line) throws Exception {
-//        System.out.println(line);
-        System.out.println(variables);
-        String command = line.strip().split("[ =]")[0];
+    private void interpretLine(String line) throws Exception, SyntaxException {
+        String command = line.strip().split("[. =]")[0];
         if (line.contains("else")) {
             executeElse(line);
         } else if (command.equals("for")) {
@@ -157,12 +163,26 @@ public class Interpreter {
             }
         } else if (command.equals("var")) {
             initVariables(line);
+        } else if (imports.contains(command)) {
+            handleImportFunction(line);
         } else if (variables.containsKey(command)||line.contains("--")||line.contains("++")||line.contains("%=")||line.contains("*=")||line.contains("/=")||line.contains("+=")||line.contains("-=")) {
             alterVariable(line);
-        } else {
+        }else if (command.equals("import")||command.equals("package")||command.equals("func")) {
             executeNonCommand(line);
+        }else if (!line.isEmpty()){
+            throw new RuntimeException("Unknown command on: " + line);
         }
         pc++;
+    }
+
+    private void handleImportFunction(String line) throws SyntaxException {
+        String[] words = line.strip().split("\\.");
+        System.out.println(Arrays.toString(words));
+        String command = words[0];
+        if (Objects.equals(command, "fmt")){
+            if (words[1].contains("print")) inputOutput.outputHandler(words[1]);
+            else if (words[1].contains("Scan")) inputOutput.inputHandler(words[1]);
+        }
     }
 
 
@@ -258,7 +278,6 @@ public class Interpreter {
     }
 
     private void executeFor(String[] conditions) {
-        System.out.println(conditions[0]);
         if (!variables.containsKey(conditions[0].split(":=")[0].trim())) initVariableNoReference(conditions[0]);
         if ((boolean) variableTypes.get("bool").apply(conditions[1])) {
             returnAddresses.push(pc);
@@ -300,7 +319,7 @@ public class Interpreter {
         if (line.strip().startsWith("package")) {
             //
         } else if (line.strip().startsWith("import")) {
-            //
+            imports.add(line.replace("import ", "").replaceAll("[\" ]",""));
         } else if (line.strip().startsWith("func")) {
             //
         }

@@ -1,7 +1,7 @@
-package service;
+package service.exeption;
 
 public class SyntaxException extends Throwable {
-    SyntaxException(){
+    public SyntaxException(){
         super("Invalid Output");
     }
 }

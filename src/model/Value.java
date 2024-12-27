@@ -16,6 +16,18 @@ public class Value {
         return value;
     }
 
+    public <T> void setValue(T value) {
+        this.value = Optional.of(value);
+    }
+
+    @Override
+    public String toString() {
+        return "Value{" +
+                "type=" + type +
+                ", value=" + value +
+                "}\n";
+    }
+
     public Function<String, ?> getType() {
         return type;
     }
