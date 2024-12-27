@@ -6,6 +6,7 @@ import "fmt"
 
 func main() {
 	var a int
+	fmt.Print("Enter a number: ")
 	fmt.Scan(&a)
 	var max int = a % 10
 	for a > 0 {

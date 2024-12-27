@@ -6,6 +6,7 @@ import "fmt"
 
 func main() {
 	var a int
+	fmt.Print("Enter a number: ")
 	fmt.Scan(&a)
 	var reversed int
 	var copyOfA int = a
@@ -13,5 +14,6 @@ func main() {
 		reversed = reversed*10 + copyOfA%10
 		copyOfA = copyOfA / 10
 	}
-	fmt.Println(a == reversed)
+    if a==reversed{fmt.Println("TrUe") }
+    else{ fmt.Println("FaLsE") }
 }
