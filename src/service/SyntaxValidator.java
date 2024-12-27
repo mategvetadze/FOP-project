@@ -1,6 +1,5 @@
 package service;
 
-
 import java.util.Stack;
 
 public class SyntaxValidator {
@@ -11,14 +10,15 @@ public class SyntaxValidator {
                 
                 import "fmt"
 
-                func main() { 
+                func main() 
+                { 
                     var a int
                     fmt.Scan(&a)
                     var reversed int
                     var copyOfA int = a
                     for copyOfA > 0 {
                         reversed = reversed*10 + copyOfA%10
-                        copyOfA = copyOfA / 10
+                        copyOfA = copyOfA / 10;
                     }
                     if (reversed == 0) {
                         reversed = 1
@@ -54,6 +54,12 @@ public class SyntaxValidator {
             // Skip empty lines
             if (trimmedLine.isEmpty()) {
                 continue;
+            }
+
+            // Check for semicolons (they are not allowed in Go)
+            if (trimmedLine.contains(";")) {
+                System.out.println("Error: Semicolons are not allowed in Go.");
+                return; // Exit after reporting the error
             }
 
             // Check for package declaration
@@ -181,6 +187,17 @@ public class SyntaxValidator {
     }
 
     private static void checkAssignmentSyntax(String line) {
+        // Skip assignment checks for variable declarations like 'var x int = 5'
+        if (line.startsWith("var") && line.contains("=")) {
+            // This is a valid declaration with assignment, so skip validation here
+            return;
+        }
+
+        // Skip function calls or expressions with equals (e.g., fmt.Println(a == reversed))
+        if (line.contains("fmt.Println") || line.contains("(") && line.contains(")")) {
+            return;  // This is a function call, skip assignment validation
+        }
+
         // Handle regular assignment (e.g., a = 5)
         String[] parts = line.split("=");
         if (parts.length != 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
