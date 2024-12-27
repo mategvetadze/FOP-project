@@ -15,7 +15,7 @@ public class SyntaxValidator {
 
                 func main() 
                 { 
-                    var a int
+                    Var a int
                     fmt.Scan(&a)
                     var reversed int
                     var copyOfA int = a
@@ -33,7 +33,7 @@ public class SyntaxValidator {
         try {
             checkSyntax(code);
         } catch (SyntaxException e) {
-            throw new SyntaxException("Semicolons are not allowed in Go");
+            throw new SyntaxException(e.getMessage());
         }
     }
 
@@ -67,12 +67,12 @@ public class SyntaxValidator {
 
             // Check for non-English alphabet characters
             if (!trimmedLine.matches("[\\x00-\\x7F]*")) {
-                throw new SyntaxException("Error: Non-English characters detected in the code.");
+                errors.add("Error: Non-English characters detected in the code.");
             }
 
             // Check for semicolons (they are not allowed in Go)
             if (trimmedLine.contains(";")) {
-                throw new SyntaxException("Error: Semicolons are not allowed in Go.");
+                errors.add("Error: Semicolons are not allowed in Go.");
             }
 
             // Check for package declaration
@@ -80,7 +80,7 @@ public class SyntaxValidator {
                 hasPackage = true;
                 // Validate package name
                 if (!trimmedLine.contains(packageName)) {
-                    throw new SyntaxException("Error: Expected package name 'service', found: " + trimmedLine);
+                    errors.add("Error: Expected package name 'service', found: " + trimmedLine);
                 }
             }
 
@@ -88,7 +88,7 @@ public class SyntaxValidator {
             else if (trimmedLine.toLowerCase().startsWith("import")) {
                 hasImport = true;
                 if (!trimmedLine.toLowerCase().contains("fmt")) {
-                    throw new SyntaxException("Error: Missing import of 'fmt'.");
+                    errors.add("Error: Missing import of 'fmt'.");
                 }
             }
 
@@ -104,7 +104,7 @@ public class SyntaxValidator {
             // Handle "if" statement
             else if (trimmedLine.startsWith("if")) {
                 if (inVarDeclaration || inAssignment) {
-                    throw new SyntaxException("Error: Invalid syntax in 'if' condition (variable declaration or assignment within).");
+                    errors.add("Error: Invalid syntax in 'if' condition (variable declaration or assignment within).");
                 }
                 inCondition = true;
                 checkForParentheses(trimmedLine);
@@ -117,7 +117,7 @@ public class SyntaxValidator {
             // Handle "for" loop
             else if (trimmedLine.startsWith("for")) {
                 if (inVarDeclaration || inAssignment) {
-                    throw new SyntaxException("Error: Invalid syntax in 'for' loop (variable declaration or assignment within).");
+                    errors.add("Error: Invalid syntax in 'for' loop (variable declaration or assignment within).");
                 }
                 checkForParentheses(trimmedLine);
                 isInForLoop = true;
@@ -132,7 +132,7 @@ public class SyntaxValidator {
                     stack.push('{');
                 } else if (trimmedLine.equals("}")) {
                     if (stack.isEmpty()) {
-                        throw new SyntaxException("Error: Mismatched closing curly brace.");
+                        errors.add("Error: Mismatched closing curly brace.");
                     } else {
                         stack.pop();
                     }
@@ -158,7 +158,7 @@ public class SyntaxValidator {
 
             // Handle unknown keyword or incorrect syntax
             else {
-                throw new SyntaxException("Error: Unknown syntax or incorrect keyword: " + trimmedLine);
+                errors.add("Error: Unknown syntax or incorrect keyword: " + trimmedLine);
             }
 
             // Reset state after processing a line
@@ -169,26 +169,27 @@ public class SyntaxValidator {
 
         // Check if there are unmatched curly braces
         if (!stack.isEmpty()) {
-            throw new SyntaxException("Error: Unmatched opening curly brace.");
+            errors.add("Error: Unmatched opening curly brace.");
         }
 
         // Ensure that package and import are present
         if (!hasPackage) {
-            throw new SyntaxException("Error: Missing 'package' declaration.");
+            errors.add("Error: Missing 'package' declaration.");
         }
         if (!hasImport) {
-            throw new SyntaxException("Error: Missing 'import' declaration.");
+            errors.add("Error: Missing 'import' declaration.");
         }
 
-        // Output all errors
+        // Output all errors or success message
         if (errors.isEmpty()) {
-            throw new SyntaxException("No syntax errors detected.");
+            System.out.println("No syntax errors detected.");
         } else {
             for (String error : errors) {
-                throw new SyntaxException(error);
+                System.err.println(error);
             }
         }
     }
+
 
     private static void checkForParentheses(String line) throws SyntaxException {
         int openParentheses = 0;
