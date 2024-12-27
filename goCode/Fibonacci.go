@@ -8,6 +8,7 @@ func main() {
 	var n int
 	var a int = 0
 	var b int = 1
+	fmt.Print("Enter a number: ")
 	fmt.Scan(&n)
 	if n == 0 {
 		fmt.Println(0)
