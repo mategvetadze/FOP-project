@@ -81,7 +81,10 @@ public class Interpreter {
         commands.add("for");
         commands.add("if");
     }
-
+    public Function<String, ?> getVariableTypes(String s){
+        System.out.println(s);
+        return variableTypes.get(s);
+    }
     private void initVariableTypes() {
         variableTypes = new HashMap<>();
         variableTypes.put("int", x -> {
