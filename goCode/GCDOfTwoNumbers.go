@@ -7,7 +7,9 @@ import "fmt"
 func main() {
 	var a int
 	var b int
+	fmt.Print("Enter a number: ")
 	fmt.Scan(&a)
+	fmt.Print("Enter a number: ")
 	fmt.Scan(&b)
 	var gcd int
 	for a>=1 && b>=1 {
