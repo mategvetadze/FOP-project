@@ -10,6 +10,7 @@ public class BooleanExpressionCalculator {
         expression = expression.replaceAll("true","1>0");
         expression = expression.replaceAll("false","1<0");
 
+
         // Create a Tokenizer instance to tokenize the expression
         Tokenizer tokenizer = new Tokenizer(expression);
 

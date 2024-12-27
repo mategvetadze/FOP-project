@@ -17,8 +17,8 @@ func main() {
 		    a = a%b
         } else {
             b = b%a
-        }
 
+        }
 	}
     if a==0 {
         gcd = b

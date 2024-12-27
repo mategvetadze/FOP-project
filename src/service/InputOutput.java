@@ -39,8 +39,6 @@ public class InputOutput {
 
     // Method to handle outputs and print the result
     public void outputHandler(String Line) throws InvalidOutput {
-        // Remove all spaces from the input line
-        Line = Line.replaceAll(" ", "");
         int n = Line.length();  // Get the length of the input string
 
         int ExceptionCnt = 0;  // Counter to track exceptions if multiple conversions fail
@@ -57,6 +55,8 @@ public class InputOutput {
         else if (ind1 != -1) {
             System.out.print(Output.substring(ind1 + 1, ind2));
         } else {
+            // Remove all spaces from the input line
+            Line = Line.replaceAll(" ", "");
             ExceptionCnt++;  // Increment exception count if no string is found
             try {
                 // Try converting the output to an integer and print
