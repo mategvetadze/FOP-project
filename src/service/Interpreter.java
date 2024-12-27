@@ -144,8 +144,7 @@ public class Interpreter {
      * @throws Exception TODO
      */
     private void interpretLine(String line) throws Exception, SyntaxException {
-        System.out.println(line);
-        System.out.println(returnAddresses);
+
         String command = line.strip().split("[. =]")[0];
         if (line.contains("else")) {
             executeElse(line);
