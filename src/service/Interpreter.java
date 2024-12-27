@@ -40,6 +40,7 @@ public class Interpreter {
      * stores where loops and if statements should return after running code in its block
      */
     private Stack<Integer> returnAddresses;
+    private Stack<String> returnInstruction;
     private Stack<Boolean> ifStack;
 
 
@@ -52,6 +53,7 @@ public class Interpreter {
         variables = new HashMap<>();
         returnAddresses = new Stack<>();
         ifStack = new Stack<>();
+        returnInstruction = new Stack<>();
         this.lines = input.split("(\n)|(\\{)");
         pc = 0;
 
@@ -68,8 +70,6 @@ public class Interpreter {
     }
 
 
-
-
     private void initCommands() {
         commands = new HashSet<>();
         commands.add("for");
@@ -79,15 +79,16 @@ public class Interpreter {
     private void initVariableTypes() {
         variableTypes = new HashMap<>();
         variableTypes.put("int", x -> {
-            String[] parts = x.replaceAll(" ","").split("[+\\-*/%]");
+            String[] parts = x.replaceAll("[() ]","").split("[+\\-*/%]");
             for (String part : parts) {
+
                 if (!part.matches("\\d+")) {
                     if (variables.containsKey(part)) {
                         Optional<?> value = variables.get(part).getValue();
                         if (value.isPresent()) {
                             x = x.replaceFirst(part, value.get().toString());
-                        }else {
-                            x= x.replaceFirst(part, "0");
+                        } else {
+                            x = x.replaceFirst(part, "0");
                         }
                     } else {
                         throw new RuntimeException("Variable " + part + " is not defined");
@@ -104,11 +105,11 @@ public class Interpreter {
         variableTypes.put("double", Double::parseDouble);
         variableTypes.put("char", x -> x.trim().charAt(1));
         variableTypes.put("bool", x -> {
-            String[] parts = x.replaceAll(" ","").replace("!","").split("&&|\\|\\||==|>=|<=|>|<");
+            String[] parts = x.replaceAll(" ", "").replace("!", "").split("&&|\\|\\||==|>=|<=|>|<");
             for (String part : parts) {
                 if (!part.matches("true|false")) {
-                    int a=(int) variableTypes.get("int").apply(part);
-                    x=x.replaceFirst(part, String.valueOf(a));
+                    int a = (int) variableTypes.get("int").apply(part);
+                    x = x.replaceFirst(part, String.valueOf(a));
                 }
             }
             try {
@@ -127,23 +128,30 @@ public class Interpreter {
      * @throws Exception TODO
      */
     private void interpretLine(String line) throws Exception {
+//        System.out.println(line);
+        System.out.println(variables);
         String command = line.strip().split("[ =]")[0];
         if (line.contains("else")) {
             executeElse(line);
-        }else if (command.equals("for")) {
-            executeFor(line);
+        } else if (command.equals("for")) {
+            executeLoop(line);
         } else if (command.equals("if")) {
             executeIf(line);
         } else if (line.contains("}")) {
             int a;
             if (returnAddresses.isEmpty()) {
-                pc =lines.length;
-            }else if ( ( a=returnAddresses.pop()) != lines.length+1){
-                pc = a-1;
+                pc = lines.length;
+            } else if ((a = returnAddresses.pop()) != lines.length + 1) {
+                pc = a - 1;
+                if (!returnInstruction.isEmpty()) {
+                    String returnLine = returnInstruction.pop();
+                    interpretLine(returnLine);
+                    pc--;
+                }
             }
-        }  else if (command.equals("var")) {
+        } else if (command.equals("var")) {
             initVariables(line);
-        } else if (variables.containsKey(command)) {
+        } else if (variables.containsKey(command)||line.contains("--")||line.contains("++")||line.contains("%=")||line.contains("*=")||line.contains("/=")||line.contains("+=")||line.contains("-=")) {
             alterVariable(line);
         } else {
             executeNonCommand(line);
@@ -155,59 +163,124 @@ public class Interpreter {
     private void falseStatement() {
         Stack<Integer> stack = new Stack<>();
         pc++;
-        while (pc<lines.length&&(!lines[pc].contains("}")||!stack.isEmpty())) {
-            if (lines[pc].contains("for")||(lines[pc].contains("if")&&!lines[pc].contains("else"))) stack.push(1);
+        while (pc < lines.length && (!lines[pc].contains("}") || !stack.isEmpty())) {
+            if (lines[pc].contains("for") || (lines[pc].contains("if") && !lines[pc].contains("else"))) stack.push(1);
             if (lines[pc].contains("}")) stack.pop();
-            if (!stack.isEmpty()&&lines[pc].contains("else")) stack.push(1);
+            if (!stack.isEmpty() && lines[pc].contains("else")) stack.push(1);
             pc++;
         }
-        if ((lines[pc].contains("else")||lines[pc].contains("for")||lines[pc].contains("if"))) pc--;
+        if ((lines[pc].contains("else") || lines[pc].contains("for") || lines[pc].contains("if"))) pc--;
     }
 
     private void executeIf(String line) throws Exception {
         String condition = line.strip().replace("if", "").replace("{", "");
-        boolean bool=(boolean) variableTypes.get("bool").apply(condition);
+        boolean bool = (boolean) variableTypes.get("bool").apply(condition);
         ifStack.push(bool);
         if (!bool) {
             falseStatement();
-        }else returnAddresses.push(lines.length+1);
+        } else returnAddresses.push(lines.length + 1);
     }
 
     private void executeElse(String line) throws Exception {
         if (ifStack.isEmpty()) throw new Exception("Else with on if statement");
-        boolean bool=ifStack.peek();
-        if (line.startsWith("if")){
-            String condition = line.strip().replace("if", "").replace("else","").replace("{", "");
-            if (!(boolean) variableTypes.get("bool").apply(condition)||bool) {
+        boolean bool = ifStack.peek();
+        if (line.startsWith("if")) {
+            String condition = line.strip().replace("if", "").replace("else", "").replace("{", "");
+            if (!(boolean) variableTypes.get("bool").apply(condition) || bool) {
                 falseStatement();
-            }else{
-                returnAddresses.push(lines.length+1);
+            } else {
+                returnAddresses.push(lines.length + 1);
                 ifStack.pop();
                 ifStack.push(true);
             }
-        }else {
-            if(bool){
+        } else {
+            if (bool) {
                 falseStatement();
                 ifStack.pop();
-            }else returnAddresses.push(lines.length+1);
+            } else returnAddresses.push(lines.length + 1);
         }
     }
 
     private void alterVariable(String line) {
-        line=line.replaceAll(" ","").trim();
+        if (alterVariableShortcut(line)) return;
+        line = line.replaceAll(" ", "").trim();
         String name = line.substring(0, line.indexOf('='));
-        String value = line.strip().substring(line.indexOf('=')+1);
-        variables.put(name,new Value( Optional.of(variables.get(name).getType().apply(value)),variables.get(name).getType()));
+        String value = line.strip().substring(line.indexOf('=') + 1);
+        variables.put(name, new Value(Optional.of(variables.get(name).getType().apply(value)), variables.get(name).getType()));
     }
 
-    private void executeFor(String line) throws Exception {
+
+    private boolean alterVariableShortcut(String line) {
+        if (line.contains("++")){
+            String name = line.replaceAll(" ", "").replaceAll("\\+","");
+            alterVariable(name+"="+name+"+1");
+            return true;
+        }else if (line.contains("--")){
+            String name = line.replaceAll(" ", "").replaceAll("-","");
+            alterVariable(name+"="+name+"+1");
+            return true;
+        }else if (line.contains("-=")){
+            String[] parts = line.trim().split("-=");
+            alterVariable(parts[0]+"="+parts[0]+"-"+parts[1]);
+            return true;
+        }else if (line.contains("+=")){
+            String[] parts = line.trim().split("\\+=");
+            alterVariable(parts[0]+"="+parts[0]+"+"+parts[1]);
+            return true;
+        }else if (line.contains("*=")){
+            String[] parts = line.trim().split("\\*=");
+            alterVariable(parts[0]+"="+parts[0]+"*("+parts[1]+")");
+            return true;
+        }else if (line.contains("/=")){
+            String[] parts = line.trim().split("/=");
+            alterVariable(parts[0]+"="+parts[0]+"/("+parts[1]+")");
+            return true;
+        }else if (line.contains("%=")){
+            String[] parts = line.trim().split("%=");
+            alterVariable(parts[0]+"="+parts[0]+"%("+parts[1]+")");
+            return true;
+        }
+        return false;
+    }
+
+
+    private void executeLoop(String line) throws Exception {
         String condition = line.strip().replace("for", "").replace("{", "");
+        String[] parts = condition.split(";");
+        if (parts.length == 1) executeWhile(condition);
+        else if (parts.length == 3) executeFor(parts);
+    }
+
+    private void executeFor(String[] conditions) {
+        System.out.println(conditions[0]);
+        if (!variables.containsKey(conditions[0].split(":=")[0].trim())) initVariableNoReference(conditions[0]);
+        if ((boolean) variableTypes.get("bool").apply(conditions[1])) {
+            returnAddresses.push(pc);
+            returnInstruction.push(conditions[2]);
+        } else {
+            falseStatement();
+        }
+    }
+
+    private void initVariableNoReference(String condition) {
+        String[] parts = condition.replaceAll(" ", "").split(":=");
+        String variableName = parts[0];
+        String value = parts[1];
+        try {
+            int val = ArithmeticExpressionCalculator.evaluateExpression(value);
+            variables.put(variableName, new Value(Optional.of(val), variableTypes.get("int")));
+        } catch (Exception e) {
+            boolean val = Boolean.parseBoolean(condition);
+            variables.put(variableName, new Value(Optional.of(val), variableTypes.get("bool")));
+        }
+    }
+
+    private void executeWhile(String condition) throws Exception {
         if ((boolean) variableTypes.get("bool").apply(condition)) {
             returnAddresses.push(pc);
         } else {
             falseStatement();
         }
-        //TODO
     }
 
 
@@ -220,7 +293,7 @@ public class Interpreter {
     private void executeNonCommand(String line) {
         if (line.strip().startsWith("package")) {
             //
-        }else if (line.strip().startsWith("import")) {
+        } else if (line.strip().startsWith("import")) {
             //
         } else if (line.strip().startsWith("func")) {
             //
@@ -244,3 +317,5 @@ public class Interpreter {
         }
     }
 }
+
+
