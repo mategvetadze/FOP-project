@@ -10,18 +10,10 @@ public class Main {
                 
                 package main
                 
-                import "fmt"
                 
                 func main() {
-                	var a int
-                	fmt.Scan(&a)
-                	var reversed int
-                	var copyOfA int = a
-                	for copyOfA > 0 {
-                		reversed = reversed*10 + copyOfA%10
-                		copyOfA = copyOfA / 10
-                	}
-                	fmt.Println(a == reversed)
+                	
+                	fmt.Println(5==5)
                 }
                 
                 

@@ -1,7 +1,7 @@
 package service;
 
 import model.Value;
-import service.exeption.SyntaxException;
+import service.exeption.*;
 
 import java.util.*;
 import java.util.function.Function;
@@ -80,7 +80,6 @@ public class Interpreter {
             while (lines[pc].startsWith("//")) pc++;
             interpretLine(lines[pc]);
         }
-        System.out.println(variables);
     }
 
 
@@ -90,7 +89,6 @@ public class Interpreter {
         commands.add("if");
     }
     public Function<String, ?> getVariableTypes(String s){
-        System.out.println(s);
         return variableTypes.get(s);
     }
     private void initVariableTypes() {
@@ -180,10 +178,9 @@ public class Interpreter {
 
     private void handleImportFunction(String line) throws SyntaxException {
         String[] words = line.strip().split("\\.");
-        System.out.println(Arrays.toString(words));
         String command = words[0];
         if (Objects.equals(command, "fmt")){
-            if (words[1].contains("print")) inputOutput.outputHandler(words[1]);
+            if (words[1].contains("Print")) inputOutput.outputHandler(words[1]);
             else if (words[1].contains("Scan")) inputOutput.inputHandler(words[1]);
         }
     }
