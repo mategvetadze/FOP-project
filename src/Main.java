@@ -1,24 +1,36 @@
+import service.FileReader;
 import service.Interpreter;
 import service.exeption.SyntaxException;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 public class Main {
     public static void main(String[] args) throws Exception, SyntaxException {
-        String code= """
-                //go:build isPalindrome
+        Scanner scanner = new Scanner(System.in);
+        String input;
+        System.out.println("""
+                Place go file in the goCode package and write the file name in the terminal to run the file
                 
-                package main
+                Enter \"exit\" to quit.
                 
-                
-                func main() {
-                	
-                	fmt.Println(5==5)
-                }
-                
-                
-                """;
-        Interpreter interpreter = new Interpreter(code);
-        interpreter.interpret();
+                =========================================================================================
+                 
+                """);
+        System.out.print("enter file name: ");
+        while (!(input = scanner.next()).equalsIgnoreCase("exit")) {
+            try {
+                String code=FileReader.readFile(input);
+                Interpreter interpreter = new Interpreter(code);
+                interpreter.interpret();
+                System.out.print("\n\nenter file name: ");
+            }catch (FileNotFoundException e){
+                System.out.print("\nFile not found!\nEnter valid file name: ");
+            }
+        }
+
     }
 }
