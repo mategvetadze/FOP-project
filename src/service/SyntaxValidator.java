@@ -1,12 +1,29 @@
 package service;
 
 import service.exeption.SyntaxException;
-
 import java.util.Stack;
 import java.util.ArrayList;
 
+/**
+ * The {@code SyntaxValidator} class is responsible for validating the syntax of Go code.
+ * It checks various aspects of Go code, including package declarations, imports, function definitions, variable declarations,
+ * loops, conditional statements, and general syntax. It also verifies that the correct syntax is used throughout the code.
+ * The syntax rules for Go, such as avoiding semicolons, using correct variable types, and matching parentheses and curly braces,
+ * are strictly enforced by this validator.
+ *
+ * This class is used to ensure that Go code adheres to the expected structure and helps identify common syntax errors.
+ * If any issues are found during the syntax check, they are reported with an appropriate error message.
+ */
 public class SyntaxValidator {
 
+    /**
+     * The main method processes a sample Go code to check for syntax errors.
+     * It will attempt to validate the syntax of the provided Go code and throws a {@link SyntaxException}
+     * if any errors are encountered.
+     *
+     * @param args command line arguments (not used)
+     * @throws SyntaxException if any syntax errors are found in the provided Go code
+     */
     public static void main(String[] args) throws SyntaxException {
         String code = """
                 package service               
@@ -29,14 +46,22 @@ public class SyntaxValidator {
                     }
                     fmt.Println(a == reversed)
                 }
-                """; // Put your Go code here
+                """; // Go code to be checked for syntax errors
         try {
-            checkSyntax(code);
+            checkSyntax(code);  // Validate the syntax of the provided code
         } catch (SyntaxException e) {
-            throw new SyntaxException(e.getMessage());
+            throw new SyntaxException(e.getMessage());  // Rethrow exception if found
         }
     }
 
+    /**
+     * Validates the syntax of the given Go code. It checks various elements such as package declaration, imports,
+     * function definitions, loops, conditionals, variable declarations, and more. It also checks for matching parentheses
+     * and curly braces, and ensures that semicolons are not used (which are not allowed in Go).
+     *
+     * @param code The Go code to validate
+     * @throws SyntaxException if any syntax errors are found
+     */
     public static void checkSyntax(String code) throws SyntaxException {
         Stack<Character> stack = new Stack<>();
         ArrayList<String> errors = new ArrayList<>();
@@ -50,13 +75,13 @@ public class SyntaxValidator {
         boolean hasPackage = false;
         boolean hasImport = false;
 
-        // Track package name
         String packageName = "service";  // Expected package name for validation
 
         boolean isInForLoop = false;
         boolean isInIfStatement = false;
         boolean isInFunction = false;
 
+        // Loop through each line of the provided code
         for (String line : lines) {
             String trimmedLine = line.trim();
 
@@ -70,21 +95,21 @@ public class SyntaxValidator {
                 errors.add("Error: Non-English characters detected in the code.");
             }
 
-            // Check for semicolons (they are not allowed in Go)
+            // Check for semicolons (which are not allowed in Go)
             if (trimmedLine.contains(";")) {
                 errors.add("Error: Semicolons are not allowed in Go.");
             }
 
-            // Check for package declaration
+            // Check for the package declaration
             if (trimmedLine.startsWith("package")) {
                 hasPackage = true;
-                // Validate package name
+                // Validate the package name
                 if (!trimmedLine.contains(packageName)) {
                     errors.add("Error: Expected package name 'service', found: " + trimmedLine);
                 }
             }
 
-            // Check for import statement (case-insensitive check for "fmt")
+            // Check for the import statement (case-insensitive check for "fmt")
             else if (trimmedLine.toLowerCase().startsWith("import")) {
                 hasImport = true;
                 if (!trimmedLine.toLowerCase().contains("fmt")) {
@@ -107,7 +132,7 @@ public class SyntaxValidator {
                     errors.add("Error: Invalid syntax in 'if' condition (variable declaration or assignment within).");
                 }
                 inCondition = true;
-                checkForParentheses(trimmedLine);
+                checkForParentheses(trimmedLine);  // Check for matching parentheses in the condition
                 if (trimmedLine.contains("{")) {
                     stack.push('{');
                 }
@@ -119,7 +144,7 @@ public class SyntaxValidator {
                 if (inVarDeclaration || inAssignment) {
                     errors.add("Error: Invalid syntax in 'for' loop (variable declaration or assignment within).");
                 }
-                checkForParentheses(trimmedLine);
+                checkForParentheses(trimmedLine);  // Check for matching parentheses in the loop
                 isInForLoop = true;
                 if (trimmedLine.contains("{")) {
                     stack.push('{');
@@ -141,22 +166,22 @@ public class SyntaxValidator {
 
             // Handle assignment checks for variable declarations
             else if (trimmedLine.contains("=") && !trimmedLine.startsWith("var")) {
-                checkAssignmentSyntax(trimmedLine, errors);
+                checkAssignmentSyntax(trimmedLine, errors);  // Validate assignment syntax
             }
 
-            // Handle variable declaration (var keyword)
+            // Handle variable declaration (using the "var" keyword)
             else if (trimmedLine.toLowerCase().startsWith("var")) {
                 inVarDeclaration = true;
-                checkVarDeclaration(trimmedLine, errors);
+                checkVarDeclaration(trimmedLine, errors);  // Validate variable declaration syntax
             }
 
-            // Handle function call
+            // Handle function calls
             else if (trimmedLine.contains("(") && trimmedLine.contains(")")) {
                 inFuncCall = true;
-                checkFunctionCall(trimmedLine, errors);
+                checkFunctionCall(trimmedLine, errors);  // Validate function call syntax
             }
 
-            // Handle unknown keyword or incorrect syntax
+            // Handle unknown syntax or incorrect keywords
             else {
                 errors.add("Error: Unknown syntax or incorrect keyword: " + trimmedLine);
             }
@@ -167,12 +192,12 @@ public class SyntaxValidator {
             inFuncCall = false;
         }
 
-        // Check if there are unmatched curly braces
+        // Check for unmatched curly braces
         if (!stack.isEmpty()) {
             errors.add("Error: Unmatched opening curly brace.");
         }
 
-        // Ensure that package and import are present
+        // Ensure that package and import declarations are present
         if (!hasPackage) {
             errors.add("Error: Missing 'package' declaration.");
         }
@@ -180,17 +205,22 @@ public class SyntaxValidator {
             errors.add("Error: Missing 'import' declaration.");
         }
 
-        // Output all errors or success message
+        // Output errors or success message
         if (errors.isEmpty()) {
             System.out.println("No syntax errors detected.");
         } else {
             for (String error : errors) {
-                System.err.println(error);
+                System.err.println(error);  // Print each error message
             }
         }
     }
 
-
+    /**
+     * Checks if parentheses in a line are properly matched.
+     *
+     * @param line The line of code to check for parentheses balance.
+     * @throws SyntaxException if mismatched parentheses are found.
+     */
     private static void checkForParentheses(String line) throws SyntaxException {
         int openParentheses = 0;
         int closeParentheses = 0;
@@ -205,16 +235,23 @@ public class SyntaxValidator {
         }
     }
 
+    /**
+     * Validates the syntax of an assignment operation.
+     *
+     * @param line The line of code to check for valid assignment syntax.
+     * @param errors The list of errors to accumulate if any issues are found.
+     * @throws SyntaxException if invalid assignment syntax is found.
+     */
     private static void checkAssignmentSyntax(String line, ArrayList<String> errors) throws SyntaxException {
         // Skip assignment checks for variable declarations like 'var x int = 5'
         if (line.startsWith("var") && line.contains("=")) {
-            return; // Skip this check
+            return;  // Skip this check
         }
 
         // Check for assignment inside fmt.Println()
         if (line.contains("fmt.Println") && line.contains("=")) {
             if (line.contains("==")) {
-                return; // This is a comparison, not an assignment
+                return;  // This is a comparison, not an assignment
             }
             errors.add("Error: Invalid assignment inside fmt.Println() function call.");
             return;
@@ -227,6 +264,13 @@ public class SyntaxValidator {
         }
     }
 
+    /**
+     * Validates the syntax of a variable declaration.
+     *
+     * @param line The line of code to check for valid variable declaration syntax.
+     * @param errors The list of errors to accumulate if any issues are found.
+     * @throws SyntaxException if invalid variable declaration syntax is found.
+     */
     private static void checkVarDeclaration(String line, ArrayList<String> errors) throws SyntaxException {
         String trimmedLine = line.trim();
 
@@ -265,6 +309,13 @@ public class SyntaxValidator {
         }
     }
 
+    /**
+     * Validates the syntax of a function call.
+     *
+     * @param line The line of code to check for valid function call syntax.
+     * @param errors The list of errors to accumulate if any issues are found.
+     * @throws SyntaxException if invalid function call syntax is found.
+     */
     private static void checkFunctionCall(String line, ArrayList<String> errors) throws SyntaxException {
         if (!line.contains("(") || !line.contains(")")) {
             errors.add("Error: Invalid function call syntax.");
