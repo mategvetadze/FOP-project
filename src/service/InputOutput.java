@@ -20,7 +20,7 @@ public class InputOutput {
             if (Line.charAt(k) == '&') {
                 StringBuilder s = new StringBuilder();
                 k++;
-                while (Line.charAt(k) != ',' || Line.charAt(k) != ')') {
+                while (Line.charAt(k) != ',' && Line.charAt(k) != ')') {
                     s.append(Line.charAt(k));
                     k++;
                 }
