@@ -9,7 +9,7 @@ func main() {
 	fmt.Scan(&n)
 	var sum int
 	for i := 1; i <= n; i++ {
-		sum = sum + i
+		sum += i
 	}
 	fmt.Println(sum)
 }
