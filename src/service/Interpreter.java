@@ -194,8 +194,8 @@ public class Interpreter {
         while (pc < lines.length && (!lines[pc].contains("}") || !stack.isEmpty())) {
             if (lines[pc].contains("for") || (lines[pc].contains("if") && !lines[pc].contains("else"))) stack.push(1);
             if (lines[pc].contains("}")) stack.pop();
-            if (!stack.isEmpty() && lines[pc].contains("else")) stack.push(1);
             pc++;
+            if (!stack.isEmpty() && lines[pc].contains("else")) stack.push(1);
         }
         if ((lines[pc].contains("else") || lines[pc].contains("for") || lines[pc].contains("if"))) pc--;
     }
@@ -210,9 +210,9 @@ public class Interpreter {
     }
 
     private void executeElse(String line) throws Exception {
-        if (ifStack.isEmpty()) throw new Exception("Else with on if statement");
+        if (ifStack.isEmpty()) throw new Exception("Else without an if statement");
         boolean bool = ifStack.peek();
-        if (line.replace("}","").startsWith("if")) {
+        if (line.replace("}", "").strip().startsWith("if")) {
             String condition = line.strip().replace("if", "").replace("else", "").replace("{", "");
             if (!(boolean) variableTypes.get("bool").apply(condition) || bool) {
                 falseStatement();
@@ -223,9 +223,11 @@ public class Interpreter {
             }
         } else {
             if (bool) {
-                if (line.contains("}")) ifStack.pop();
+                if (line.contains("}")) returnAddresses.pop();
                 falseStatement();
-            } else returnAddresses.push(lines.length + 1);
+            } else {
+                returnAddresses.push(lines.length + 1);
+            }
         }
     }
 
