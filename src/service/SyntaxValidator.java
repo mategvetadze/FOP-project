@@ -1,6 +1,6 @@
-package service;
 
-import service.exeption.SyntaxException;
+package service;
+import service.exception.SyntaxException;
 import java.util.Stack;
 import java.util.ArrayList;
 
@@ -32,7 +32,7 @@ public class SyntaxValidator {
 
                 func main() 
                 { 
-                    Var a int
+                    var a int
                     fmt.Scan(&a)
                     var reversed int
                     var copyOfA int = a
@@ -95,9 +95,16 @@ public class SyntaxValidator {
                 errors.add("Error: Non-English characters detected in the code.");
             }
 
-            // Check for semicolons (which are not allowed in Go)
+            // Check for semicolons (which are not allowed outside of for loops)
             if (trimmedLine.contains(";")) {
-                errors.add("Error: Semicolons are not allowed in Go.");
+                if (isInForLoop) {
+                    // Semicolon inside for loop is allowed (as part of the loop structure)
+                    if (!trimmedLine.contains("for")) {
+                        errors.add("Error: Invalid semicolon in for loop statement.");
+                    }
+                } else {
+                    errors.add("Error: Semicolons are not allowed outside of for loop.");
+                }
             }
 
             // Check for the package declaration
@@ -190,6 +197,11 @@ public class SyntaxValidator {
             inAssignment = false;
             inVarDeclaration = false;
             inFuncCall = false;
+
+            // If we exit the for loop, reset the for loop flag
+            if (trimmedLine.contains("}")) {
+                isInForLoop = false;
+            }
         }
 
         // Check for unmatched curly braces

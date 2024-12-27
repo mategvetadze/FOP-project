@@ -1,12 +1,9 @@
 import service.FileReader;
 import service.Interpreter;
-import service.exeption.SyntaxException;
+import service.exception.SyntaxException;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Objects;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 public class Main {
     public static void main(String[] args) throws Exception, SyntaxException {

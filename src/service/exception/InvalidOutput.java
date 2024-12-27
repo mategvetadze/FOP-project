@@ -1,4 +1,4 @@
-package service.exeption;
+package service.exception;
 
 public class InvalidOutput extends RuntimeException {
     public InvalidOutput() {

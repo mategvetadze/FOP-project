@@ -1,6 +1,6 @@
 package service;
 
-import service.exeption.InvalidOutput;  // Importing a custom exception class
+import service.exception.InvalidOutput;  // Importing a custom exception class
 
 import java.util.Scanner;
 

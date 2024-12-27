@@ -1,7 +1,7 @@
 package service;
 
 import model.Value;
-import service.exeption.*;
+import service.exception.*;
 
 import java.util.*;
 import java.util.function.Function;
