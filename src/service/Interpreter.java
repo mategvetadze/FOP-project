@@ -150,6 +150,14 @@ public class Interpreter {
             executeLoop(line);
         } else if (command.equals("if")) {
             executeIf(line);
+        }else if (command.equals("var")) {
+            initVariables(line);
+        } else if (imports.contains(command)) {
+            handleImportFunction(line);
+        } else if (variables.containsKey(command)||line.contains("--")||line.contains("++")||line.contains("%=")||line.contains("*=")||line.contains("/=")||line.contains("+=")||line.contains("-=")) {
+            alterVariable(line);
+        }else if (command.equals("import")||command.equals("package")||command.equals("func")) {
+            executeNonCommand(line);
         } else if (line.contains("}")) {
             int a;
             if (returnAddresses.isEmpty()) {
@@ -162,15 +170,7 @@ public class Interpreter {
                     pc--;
                 }
             }
-        } else if (command.equals("var")) {
-            initVariables(line);
-        } else if (imports.contains(command)) {
-            handleImportFunction(line);
-        } else if (variables.containsKey(command)||line.contains("--")||line.contains("++")||line.contains("%=")||line.contains("*=")||line.contains("/=")||line.contains("+=")||line.contains("-=")) {
-            alterVariable(line);
-        }else if (command.equals("import")||command.equals("package")||command.equals("func")) {
-            executeNonCommand(line);
-        }else if (!line.isEmpty()){
+        } else if (!line.isEmpty()){
             throw new RuntimeException("Unknown command on: " + line);
         }
         pc++;

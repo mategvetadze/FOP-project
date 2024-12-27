@@ -1,7 +1,7 @@
 package service.exeption;
 
 public class SyntaxException extends Throwable {
-    SyntaxException(String message){
+    public SyntaxException(String message){
         super(message);
     }
 }
