@@ -1,4 +1,3 @@
-
 package service;
 import service.exception.SyntaxException;
 import java.util.Stack;
@@ -288,8 +287,34 @@ public class SyntaxValidator {
      * @throws SyntaxException if invalid function call syntax is found.
      */
     private static void checkFunctionCall(String line, ArrayList<String> errors) throws SyntaxException {
+        // Check for invalid function call syntax (missing parentheses)
         if (!line.contains("(") || !line.contains(")")) {
             errors.add("Error: Invalid function call syntax.");
+            return;
+        }
+
+        // Check for fmt.print with a string inside, which should be an error
+        if (line.contains("fmt.print") && line.contains("\"") && line.contains(")")) {
+            // Ensure that the string is inside the parentheses, which indicates a string literal being passed
+            int startIdx = line.indexOf("fmt.print");
+            int openParenIdx = line.indexOf("(", startIdx);
+            int closeParenIdx = line.indexOf(")", openParenIdx);
+
+            if (openParenIdx != -1 && closeParenIdx != -1) {
+                // Extract the content inside the parentheses
+                String insideParentheses = line.substring(openParenIdx + 1, closeParenIdx).trim();
+
+                // Check if the content inside parentheses is a string literal (starts and ends with a quote)
+                if (insideParentheses.startsWith("\"") && insideParentheses.endsWith("\"")) {
+                    errors.add("Error: Unexpected syntax. 'fmt.print' cannot have a string inside. Use 'fmt.Println' instead.");
+                }
+            }
+        }
+
+        // Check for fmt.Print (capital P)
+        if (line.contains("fmt.Print")) {
+            errors.add("Error: Use of 'fmt.Print' is not allowed. Use 'fmt.Println' instead.");
         }
     }
+
 }
