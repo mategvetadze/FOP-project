@@ -16,6 +16,7 @@ func main() {
 	}
 	if a == 1 {
 		isPrime = false
+
 	}
 	fmt.Println(isPrime)
 }

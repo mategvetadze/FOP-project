@@ -1,4 +1,4 @@
-- __Mate Gvetadze__ -project manager
-- __Ani Purtskhvanidze__ - 
-- __Lizi Kebuladze__ -
-- __Luka Kalandadze__ -
+- __Mate Gvetadze__ -project manager/tester
+- __Ani Purtskhvanidze__ - error handling
+- __Lizi Kebuladze__ -I/O
+- __Luka Kalandadze__ -interpreter
