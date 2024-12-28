@@ -17,44 +17,6 @@ import java.util.ArrayList;
 public class SyntaxValidator {
 
     /**
-     * The main method processes a sample Go code to check for syntax errors.
-     * It will attempt to validate the syntax of the provided Go code and throws a {@link SyntaxException}
-     * if any errors are encountered.
-     *
-     * @param args command line arguments (not used)
-     * @throws SyntaxException if any syntax errors are found in the provided Go code
-     */
-    public static void main(String[] args) throws SyntaxException {
-        String code = """
-                package service               
-
-                import "fmt"
-
-                func main() 
-                { 
-                    var a int
-                    fmt.Scan(&a)
-                    var reversed int
-                    var copyOfA int = a
-                    for copyOfA > 0 
-                    {
-                        reversed = reversed*10 + copyOfA%10
-                        copyOfA = copyOfA / 10
-                    }
-                    if (reversed == 0) {
-                        reversed = 1
-                    }
-                    fmt.Println(a == reversed)
-                }
-                """; // Go code to be checked for syntax errors
-        try {
-            checkSyntax(code);  // Validate the syntax of the provided code
-        } catch (SyntaxException e) {
-            throw new SyntaxException(e.getMessage());  // Rethrow exception if found
-        }
-    }
-
-    /**
      * Validates the syntax of the given Go code. It checks various elements such as package declaration, imports,
      * function definitions, loops, conditionals, variable declarations, and more. It also checks for matching parentheses
      * and curly braces, and ensures that semicolons are not used (which are not allowed in Go).
@@ -75,7 +37,7 @@ public class SyntaxValidator {
         boolean hasPackage = false;
         boolean hasImport = false;
 
-        String packageName = "service";  // Expected package name for validation
+//        String packageName = "service";  // Expected package name for validation
 
         boolean isInForLoop = false;
         boolean isInIfStatement = false;
@@ -83,6 +45,7 @@ public class SyntaxValidator {
 
         // Loop through each line of the provided code
         for (String line : lines) {
+            if (line.startsWith("//")) continue;
             String trimmedLine = line.trim();
 
             // Skip empty lines
@@ -111,9 +74,9 @@ public class SyntaxValidator {
             if (trimmedLine.startsWith("package")) {
                 hasPackage = true;
                 // Validate the package name
-                if (!trimmedLine.contains(packageName)) {
-                    errors.add("Error: Expected package name 'service', found: " + trimmedLine);
-                }
+//                if (!trimmedLine.contains(packageName)) {
+//                    errors.add("Error: Expected package name 'service', found: " + trimmedLine);
+//                }
             }
 
             // Check for the import statement (case-insensitive check for "fmt")
@@ -218,12 +181,8 @@ public class SyntaxValidator {
         }
 
         // Output errors or success message
-        if (errors.isEmpty()) {
-            System.out.println("No syntax errors detected.");
-        } else {
-            for (String error : errors) {
-                System.err.println(error);  // Print each error message
-            }
+        if (!errors.isEmpty()) {
+            throw new SyntaxException(errors);
         }
     }
 

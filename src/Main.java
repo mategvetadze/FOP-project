@@ -1,3 +1,4 @@
+import service.BooleanExpressionCalculator;
 import service.FileReader;
 import service.Interpreter;
 import service.exception.SyntaxException;

@@ -14,6 +14,5 @@ func main() {
 		reversed = reversed*10 + copyOfA%10
 		copyOfA = copyOfA / 10
 	}
-    if a==reversed{fmt.Println("TrUe") }
-    else{ fmt.Println("FaLsE") }
+    fmt.Println(a==reversed)
 }

@@ -62,6 +62,7 @@ public class Interpreter {
         returnInstruction = new Stack<>();
         imports = new HashSet<>();
         inputOutput =new InputOutput(this);
+//        input=input.replaceAll("}\\s*else","}\nelse");
         this.lines = input.split("(\n)|(\\{)");
         pc = 0;
 
@@ -96,7 +97,6 @@ public class Interpreter {
         variableTypes.put("int", x -> {
             String[] parts = x.replaceAll("[() ]","").split("[+\\-*/%]");
             for (String part : parts) {
-
                 if (!part.matches("\\d+")) {
                     if (variables.containsKey(part)) {
                         Optional<?> value = variables.get(part).getValue();
@@ -111,6 +111,7 @@ public class Interpreter {
                 }
             }
             try {
+                if (x.matches("true|false")) return x;
                 return ArithmeticExpressionCalculator.evaluateExpression(x);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -123,8 +124,8 @@ public class Interpreter {
             String[] parts = x.replaceAll(" ", "").replace("!", "").split("&&|\\|\\||==|>=|<=|>|<");
             for (String part : parts) {
                 if (!part.matches("true|false")) {
-                    int a = (int) variableTypes.get("int").apply(part);
-                    x = x.replaceFirst(part, String.valueOf(a));
+                    String a =  variableTypes.get("int").apply(part)+"";
+                    x = x.replaceFirst(part, a);
                 }
             }
             try {
@@ -143,6 +144,7 @@ public class Interpreter {
      * @throws Exception TODO
      */
     private void interpretLine(String line) throws Exception, SyntaxException {
+
         String command = line.strip().split("[. =]")[0];
         if (line.contains("else")) {
             executeElse(line);
@@ -192,8 +194,8 @@ public class Interpreter {
         while (pc < lines.length && (!lines[pc].contains("}") || !stack.isEmpty())) {
             if (lines[pc].contains("for") || (lines[pc].contains("if") && !lines[pc].contains("else"))) stack.push(1);
             if (lines[pc].contains("}")) stack.pop();
-            if (!stack.isEmpty() && lines[pc].contains("else")) stack.push(1);
             pc++;
+            if (!stack.isEmpty() && lines[pc].contains("else")) stack.push(1);
         }
         if ((lines[pc].contains("else") || lines[pc].contains("for") || lines[pc].contains("if"))) pc--;
     }
@@ -208,9 +210,9 @@ public class Interpreter {
     }
 
     private void executeElse(String line) throws Exception {
-        if (ifStack.isEmpty()) throw new Exception("Else with on if statement");
+        if (ifStack.isEmpty()) throw new Exception("Else without an if statement");
         boolean bool = ifStack.peek();
-        if (line.startsWith("if")) {
+        if (line.replace("}", "").strip().startsWith("if")) {
             String condition = line.strip().replace("if", "").replace("else", "").replace("{", "");
             if (!(boolean) variableTypes.get("bool").apply(condition) || bool) {
                 falseStatement();
@@ -221,9 +223,11 @@ public class Interpreter {
             }
         } else {
             if (bool) {
+                if (line.contains("}")) returnAddresses.pop();
                 falseStatement();
-                ifStack.pop();
-            } else returnAddresses.push(lines.length + 1);
+            } else {
+                returnAddresses.push(lines.length + 1);
+            }
         }
     }
 
