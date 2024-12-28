@@ -73,9 +73,6 @@ public class SyntaxValidator {
             if (trimmedLine.startsWith("package")) {
                 hasPackage = true;
                 // Validate the package name
-//                if (!trimmedLine.contains(packageName)) {
-//                    errors.add("Error: Expected package name 'service', found: " + trimmedLine);
-//                }
             }
 
             // Check for the import statement (case-insensitive check for "fmt")

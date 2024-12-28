@@ -12,12 +12,12 @@ public class Main {
         String input;
         System.out.println("""
                 Place go file in the goCode package and write the file name in the terminal to run the file
-                
+               \s
                 Enter \"exit\" to quit.
-                
+               \s
                 =========================================================================================
-                 
-                """);
+                \s
+               \s""");
         System.out.print("enter file name: ");
         while (!(input = scanner.next()).equalsIgnoreCase("exit")) {
             try {

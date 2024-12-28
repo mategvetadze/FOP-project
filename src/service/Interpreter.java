@@ -6,11 +6,6 @@ import service.exception.*;
 import java.util.*;
 import java.util.function.Function;
 
-/**
- * {@code Interpreter} class<br>
- * TODO
- *  @author Luka kalandadze
- */
 public class Interpreter {
 
     /**
@@ -177,7 +172,7 @@ public class Interpreter {
         }
         pc++;
     }
-
+    //Handles the import function
     private void handleImportFunction(String line) throws SyntaxException {
         String[] words = line.strip().split("\\.");
         String command = words[0];
@@ -187,7 +182,7 @@ public class Interpreter {
         }
     }
 
-
+    //Executes a false statement
     private void falseStatement() {
         Stack<Integer> stack = new Stack<>();
         pc++;
@@ -199,7 +194,7 @@ public class Interpreter {
         }
         if ((lines[pc].contains("else") || lines[pc].contains("for") || lines[pc].contains("if"))) pc--;
     }
-
+    //Executes an if statement
     private void executeIf(String line) throws Exception {
         String condition = line.strip().replace("if", "").replace("{", "");
         boolean bool = (boolean) variableTypes.get("bool").apply(condition);
@@ -208,7 +203,7 @@ public class Interpreter {
             falseStatement();
         } else returnAddresses.push(lines.length + 1);
     }
-
+    //Executes an else statement
     private void executeElse(String line) throws Exception {
         if (ifStack.isEmpty()) throw new Exception("Else without an if statement");
         boolean bool = ifStack.peek();
@@ -230,7 +225,7 @@ public class Interpreter {
             }
         }
     }
-
+    //Alters a variable
     private void alterVariable(String line) {
         if (alterVariableShortcut(line)) return;
         line = line.replaceAll(" ", "").trim();
@@ -239,7 +234,7 @@ public class Interpreter {
         variables.put(name, new Value(Optional.of(variables.get(name).getType().apply(value)), variables.get(name).getType()));
     }
 
-
+    //Alters a variable using a shortcut
     private boolean alterVariableShortcut(String line) {
         if (line.contains("++")){
             String name = line.replaceAll(" ", "").replaceAll("\\+","");
@@ -273,14 +268,14 @@ public class Interpreter {
         return false;
     }
 
-
+    //Executes a loop
     private void executeLoop(String line) throws Exception {
         String condition = line.strip().replace("for", "").replace("{", "");
         String[] parts = condition.split(";");
         if (parts.length == 1) executeWhile(condition);
         else if (parts.length == 3) executeFor(parts);
     }
-
+    //Implementing for loop
     private void executeFor(String[] conditions) {
         if (!variables.containsKey(conditions[0].split(":=")[0].trim())) initVariableNoReference(conditions[0]);
         if ((boolean) variableTypes.get("bool").apply(conditions[1])) {
@@ -290,7 +285,7 @@ public class Interpreter {
             falseStatement();
         }
     }
-
+    //Initializes a variable without a reference to another variable
     private void initVariableNoReference(String condition) {
         String[] parts = condition.replaceAll(" ", "").split(":=");
         String variableName = parts[0];
@@ -303,7 +298,7 @@ public class Interpreter {
             variables.put(variableName, new Value(Optional.of(val), variableTypes.get("bool")));
         }
     }
-
+    //Implementing while loop
     private void executeWhile(String condition) throws Exception {
         if ((boolean) variableTypes.get("bool").apply(condition)) {
             returnAddresses.push(pc);

@@ -1,4 +1,4 @@
-- __Ani Purtskhvanidze__ -
+- __Mate Gvetadze__ -project manager
+- __Ani Purtskhvanidze__ - 
 - __Lizi Kebuladze__ -
-- __Mate Gvetadze__ -
 - __Luka Kalandadze__ -

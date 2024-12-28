@@ -14,5 +14,8 @@ func main() {
 			isPrime = false
 		}
 	}
+	if a == 1 {
+		isPrime = false
+	}
 	fmt.Println(isPrime)
 }
