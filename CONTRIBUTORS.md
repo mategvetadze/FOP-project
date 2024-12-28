@@ -1,4 +1,4 @@
-- __Mate Gvetadze__ -project manager/tester
+- __Mate Gvetadze__ -project manager/arithmetic calculator/tester
 - __Ani Purtskhvanidze__ - error handling
 - __Lizi Kebuladze__ -I/O
 - __Luka Kalandadze__ -interpreter
